@@ -1,0 +1,20 @@
+{
+    "database_path": "folder_watcher.db",
+    "log_directory": "logs/",
+    "max_concurrent_tasks": 4,
+    "folders": [
+      {
+        "folder_path": "./watch_folder_1",
+        "folder_name": "Sample Watch Folder 1",
+        "task_name": "Example Processing Task",
+        "task_executable": "python ./tasks/example_task.py",
+        "enabled": true
+      }
+    ],
+    "task_specific_config": {
+      "Example Processing Task": {
+        "processing_delay_seconds": 5,
+        "output_message": "Task finished successfully."
+      }
+    }
+  }
