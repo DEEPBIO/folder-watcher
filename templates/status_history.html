@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Task Status & History - Folder Watcher{% endblock %}
+
+{% block content %}
+  <h2>Active Tasks</h2>
+  <div class="table-container">
+    <table id="active-tasks-table">
+      <thead>
+        <tr>
+          <th>Task Name</th>
+          <th>File Path</th>
+          <th>Status</th>
+          <th>Stage</th>
+          <th>Message</th>
+          <th>Start Time</th>
+          <th>Last Update</th>
+          <th>PID</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="9">Loading active tasks...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Task History</h2>
+  <div class="table-container">
+    <table id="history-tasks-table">
+      <thead>
+        <tr>
+          <th>Task Name</th>
+          <th>File Path</th>
+          <th>Final Status</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Final Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="6">Loading task history...</td></tr>
+      </tbody>
+    </table>
+     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // --- Functions to Fetch and Display Data ---
+  function formatTimestamp(isoString) {
+    if (!isoString) return '';
+    try {
+        // Simple formatting, consider using a library like Moment.js or date-fns for more robust parsing/formatting
+        const date = new Date(isoString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            return isoString; // Return original string if parsing fails
+        }
+        return date.toLocaleString(); // Use browser's local time format
+    } catch (e) {
+        console.error("Error formatting timestamp:", isoString, e);
+        return isoString; // Return original on error
+    }
+  }
+
+
+  function populateActiveTasks(tasks) {
+    const tableBody = document.querySelector('#active-tasks-table tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+    if (tasks.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9">No active tasks found.</td></tr>';
+        return;
+    }
+
+    tasks.forEach(task => {
+      const row = tableBody.insertRow();
+      row.innerHTML = `
+        <td>${task.task_name || ''}</td>
+        <td>${task.file_path || ''}</td>
+        <td>${task.status || ''}</td>
+        <td>${task.current_stage || ''}</td>
+        <td class="message-cell">${task.message || ''}</td>
+        <td>${formatTimestamp(task.start_time)}</td>
+        <td>${formatTimestamp(task.last_update_time)}</td>
+        <td>${task.executor_pid || ''}</td>
+        <td>
+          <button class="button button-abort" data-filepath="${task.file_path}">Abort</button>
+        </td>
+      `;
+      // Add event listener to the abort button
+      row.querySelector('.button-abort').addEventListener('click', handleAbortClick);
+    });
+  }
+
+   function populateHistoryTasks(tasks) {
+    const tableBody = document.querySelector('#history-tasks-table tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+     if (tasks.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6">No task history found.</td></tr>';
+        return;
+    }
+    tasks.forEach(task => {
+      const row = tableBody.insertRow();
+      row.innerHTML = `
+        <td>${task.task_name || ''}</td>
+        <td>${task.file_path || ''}</td>
+        <td>${task.final_status || ''}</td>
+        <td>${formatTimestamp(task.start_time)}</td>
+        <td>${formatTimestamp(task.end_time)}</td>
+        <td class="message-cell">${task.final_message || ''}</td>
+      `;
+    });
+  }
+
+  // --- Function to Handle Abort Button Click ---
+  function handleAbortClick(event) {
+     const button = event.target;
+     const filePath = button.dataset.filepath;
+     if (!filePath) {
+        console.error("File path not found on abort button.");
+        return;
+     }
+
+     if (confirm(`Are you sure you want to abort the task for file: ${filePath}?`)) {
+        console.log(`Requesting abort for: ${filePath}`);
+        // Disable button while request is pending
+        button.disabled = true;
+        button.textContent = 'Aborting...';
+
+        // Use Fetch API to send POST request to the abort endpoint
+        // Need to handle potential URL encoding if file paths contain special chars
+        fetch(`/api/abort/${encodeURIComponent(filePath)}`, { // Ensure file path is encoded
+            method: 'POST',
+            headers: {
+                // Add CSRF token header here if CSRF protection is implemented
+                'Content-Type': 'application/json' // Optional if no body sent
+            }
+            // body: JSON.stringify({}) // Optional if API requires body
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Try to get error message from response body
+                return response.json().then(err => { throw new Error(err.message || `HTTP error! status: ${response.status}`) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Abort response:', data);
+            alert(data.message || 'Abort request sent.');
+            // Optionally refresh the active tasks list after a short delay
+             setTimeout(fetchActiveTasks, 1000); // Refresh after 1 sec
+        })
+        .catch(error => {
+            console.error('Abort request failed:', error);
+            alert(`Failed to send abort request: ${error.message}`);
+            // Re-enable button on failure
+             button.disabled = false;
+             button.textContent = 'Abort';
+        });
+     }
+  }
+
+
+  // --- Functions to Fetch Data ---
+  function fetchActiveTasks() {
+    fetch('/api/status')
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => populateActiveTasks(data))
+      .catch(error => {
+        console.error('Error fetching active tasks:', error);
+        const tableBody = document.querySelector('#active-tasks-table tbody');
+        tableBody.innerHTML = `<tr><td colspan="9">Error loading active tasks: ${error.message}</td></tr>`;
+      });
+  }
+
+  function fetchHistoryTasks() {
+     // TODO: Add parameters for pagination, filtering etc.
+     fetch('/api/history?limit=100') // Example limit
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => populateHistoryTasks(data))
+      .catch(error => {
+        console.error('Error fetching task history:', error);
+         const tableBody = document.querySelector('#history-tasks-table tbody');
+        tableBody.innerHTML = `<tr><td colspan="6">Error loading task history: ${error.message}</td></tr>`;
+      });
+  }
+
+  // --- Initial Data Load & Auto-Refresh ---
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchActiveTasks();
+    fetchHistoryTasks();
+
+    // Optional: Auto-refresh active tasks every N seconds
+    setInterval(fetchActiveTasks, 10000); // Refresh every 10 seconds
+    // History usually doesn't need frequent refreshing
+  });
+
+</script>
+{% endblock %}

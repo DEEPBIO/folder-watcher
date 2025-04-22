@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - Folder Watcher{% endblock %}
+
+{% block content %}
+  <h2>Configuration</h2>
+  <p>Edit the configuration below (JSON format). Changes will be applied after validation upon submission.</p>
+  <form method="post" action="{{ url_for('configuration') }}" id="config-form">
+     <div class="form-group">
+      <label for="config_json">Configuration (config.json):</label>
+      <textarea id="config_json" name="config_json" rows="25" required>{{ config_json }}</textarea>
+     </div>
+     <button type="submit" class="button">Save and Apply Configuration</button>
+     </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Optional: Add JavaScript for client-side JSON validation or a JSON editor library
+    // document.getElementById('config-form').addEventListener('submit', function(event) {
+    //     const textarea = document.getElementById('config_json');
+    //     try {
+    //         JSON.parse(textarea.value);
+    //         // JSON is valid
+    //     } catch (e) {
+    //         alert('Invalid JSON format: ' + e.message);
+    //         event.preventDefault(); // Prevent form submission
+    //     }
+    // });
+</script>
+{% endblock %}

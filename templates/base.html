@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Folder Watcher{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="container">
+          <span class="navbar-brand">Folder Watcher</span>
+          {% if session.username %}
+          <ul class="nav-links">
+             <li><a href="{{ url_for('status_history') }}">Task Status & History</a></li>
+             <li><a href="{{ url_for('configuration') }}">Configuration</a></li>
+             <li><a href="{{ url_for('logout') }}">Logout ({{ session.username }})</a></li>
+          </ul>
+          {% endif %}
+        </div>
+      </nav>
+    </header>
+
+    <main class="container content-body">
+        {# --- Flash Messages --- #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category|replace('danger', 'error') }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {# --- Main Content Block --- #}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; {{ now().year }} Folder Watcher App</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %} {# Placeholder for page-specific scripts #}
+  </body>
+</html>
