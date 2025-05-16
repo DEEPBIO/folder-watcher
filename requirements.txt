@@ -1,4 +1,5 @@
 Flask>=2.0
+psutil>=6.0
 watchdog>=2.0
 Werkzeug>=2.0 # For password hashing
 python-dotenv # Optional: for loading environment variables if needed

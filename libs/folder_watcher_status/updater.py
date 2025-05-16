@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sqlite3
 import datetime
 import logging
@@ -37,7 +39,7 @@ def _execute_update(db_path, sql, params):
         return False
     # Connection closed automatically by 'with'
 
-def update_status(db_path: str, file_path: str, status: str = None, stage: str = None, message: str = None, pid: str = None):
+def update_status(db_path, file_path, status=None, stage=None, message=None, pid=None):
     """
     Updates the status, stage, message, or pid of an active task.
     Args:
@@ -80,7 +82,7 @@ def update_status(db_path: str, file_path: str, status: str = None, stage: str =
     return _execute_update(db_path, sql, tuple(params))
 
 
-def set_final_status(db_path: str, file_path: str, final_status: str, final_message: str = ""):
+def set_final_status(db_path, file_path, final_status, final_message=""):
     """
     Placeholder: In v0.3, the main app moves tasks to history.
     Tasks *could* use this to signal completion state if the design changes,

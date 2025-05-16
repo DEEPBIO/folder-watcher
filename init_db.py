@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import logging
 import os
 from database import init_db
