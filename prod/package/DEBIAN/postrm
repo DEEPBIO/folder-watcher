@@ -1,0 +1,13 @@
+#!/bin/bash
+# postrm 스크립트: 패키지 제거 '후'에 실행됨
+
+set -e
+
+# 'purge' 액션일 때만 생성된 시스템 디렉토리와 파일을 삭제
+if [ "$1" = "purge" ]; then
+    echo "Purging Folder-Watcher configurations..."
+    rm -rf /var/log/folder-watcher
+    rm -rf /var/run/folder-watcher
+fi
+
+exit 0

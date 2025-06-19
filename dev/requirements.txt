@@ -1,0 +1,4 @@
+# 개발 및 빌드에 필요한 라이브러리
+flask
+watchdog
+pyinstaller

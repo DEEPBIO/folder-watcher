@@ -1,0 +1,28 @@
+#!/bin/bash
+# postinst 스크립트: 패키지 설치 '후'에 실행됨.
+# 요구사항: FR-0003 과 관련된 시스템 디렉토리 생성
+
+set -e
+
+# 1. 로그 및 PID 디렉토리 생성
+echo "Creating log and pid directories..."
+mkdir -p /var/log/folder-watcher
+mkdir -p /var/run/folder-watcher/pids
+
+# 2. 디렉토리 권한 설정 (모든 사용자가 접근 가능하도록)
+chown root:root /var/log/folder-watcher
+chmod 777 /var/log/folder-watcher
+
+chown root:root /var/run/folder-watcher
+chmod 777 /var/run/folder-watcher
+chmod 777 /var/run/folder-watcher/pids
+
+# 3. 인증 파일 권한 설정 (SR-0002)
+echo "Setting permissions for credential file..."
+if [ -f "/opt/folder-watcher/cred" ]; then
+    chmod 644 /opt/folder-watcher/cred
+    echo "WARNING: /opt/folder-watcher/cred is world-readable for application access."
+fi
+
+echo "Folder-Watcher setup complete."
+exit 0

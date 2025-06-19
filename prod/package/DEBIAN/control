@@ -1,0 +1,11 @@
+Package: folder-watcher
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libc6
+Maintainer: Tae-Yeong Kwak <tykwak@deepbio.co.kr>
+Description: A tool to watch folders and execute tasks automatically.
+ This application monitors specified folders for new files. When a file is
+ fully saved, it triggers a user-defined application or script.
+ It provides a web interface for monitoring and management.

@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mb-4">작업 현황 대시보드</h2>
+{% for task in status_data %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>{{ task.name }}</h4>
+    </div>
+    <div class="card-body">
+        <h5>실행 중 ({{ task.running|length }})</h5>
+        {% if task.running %}
+        <ul class="list-group">
+            {% for item in task.running %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><small>{{ item.file }} (PID: {{ item.pid }})</small></span>
+                <form action="{{ url_for('stop_task', pid=item.pid) }}" method="post" onsubmit="return confirm('정말로 이 작업을 중단하시겠습니까?');">
+                    <button type="submit" class="btn btn-danger btn-sm">중단</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">실행 중인 작업이 없습니다.</p>
+        {% endif %}
+
+        <h5 class="mt-4">최근 완료 <small class="text-muted">({{ task.done|length }}개, 폴더: {{ task.done_folder }})</small></h5>
+        <ul class="list-group list-group-flush">
+            {% for file in task.done %}
+                <li class="list-group-item py-1"><small>{{ file }}</small></li>
+            {% else %}
+                <li class="list-group-item py-1"><small class="text-muted">없음</small></li>
+            {% endfor %}
+        </ul>
+
+        <h5 class="mt-4">최근 중단 <small class="text-muted">({{ task.stop|length }}개, 폴더: {{ task.stop_folder }})</small></h5>
+        <ul class="list-group list-group-flush">
+            {% for file in task.stop %}
+                <li class="list-group-item py-1"><small>{{ file }}</small></li>
+            {% else %}
+                <li class="list-group-item py-1"><small class="text-muted">없음</small></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">표시할 작업이 없습니다. 설정을 확인하세요.</div>
+{% endfor %}
+{% endblock %}
