@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+if [ "$1" = "purge" ]; then
+    echo "Purging Folder-Watcher configurations..."
+    rm -rf /var/log/folder-watcher
+    rm -rf /var/run/folder-watcher
+fi
+exit 0

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Folder Watcher
+Comment=Watch folders and execute tasks
+Exec=/opt/folder-watcher/folder-watcher-executable
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=Utility;Application;

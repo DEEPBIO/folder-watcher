@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+echo "Creating system directories for Folder-Watcher..."
+mkdir -p /var/log/folder-watcher
+mkdir -p /var/run/folder-watcher/pids
+
+chown root:root /var/log/folder-watcher
+chmod 777 /var/log/folder-watcher
+chown root:root /var/run/folder-watcher
+chmod 777 /var/run/folder-watcher
+chmod 777 /var/run/folder-watcher/pids
+
+echo "Creating default credential file..."
+if [ ! -f "/opt/folder-watcher/cred" ]; then
+    echo "admin:password123" > /opt/folder-watcher/cred
+fi
+chmod 644 /opt/folder-watcher/cred
+echo "WARNING: /opt/folder-watcher/cred is world-readable."
+
+echo "Folder-Watcher setup complete."
+exit 0

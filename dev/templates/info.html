@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mb-4">소프트웨어 정보</h2>
+<div class="card">
+    <div class="card-body">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th style="width: 20%;">이름</th>
+                    <td>{{ info.name }}</td>
+                </tr>
+                <tr>
+                    <th>버전</th>
+                    <td>{{ info.version }}</td>
+                </tr>
+                <tr>
+                    <th>코드 저장소</th>
+                    <td><a href="{{ info.repository }}" target="_blank">{{ info.repository }}</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
