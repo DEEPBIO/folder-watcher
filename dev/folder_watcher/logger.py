@@ -7,11 +7,10 @@ from logging.handlers import TimedRotatingFileHandler
 def setup_logging(log_folder: str):
     """시간 기반으로 로그 파일을 생성하고 관리하는 로거를 설정합니다."""
     try:
-        # FR-0003: 설치 스크립트가 디렉토리를 생성하므로, 여기서는 존재 여부만 확인.
+        # 디렉토리가 존재하지 않으면 생성
         if not os.path.isdir(log_folder):
-             raise FileNotFoundError(f"Log directory not found: {log_folder}")
+             os.makedirs(log_folder, exist_ok=True)
 
-        # FR-0016: 로그 파일 이름 형식 및 로테이션 정책
         log_file_path = os.path.join(log_folder, "folder-watcher.log")
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         

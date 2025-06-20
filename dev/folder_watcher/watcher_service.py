@@ -32,11 +32,10 @@ class WatcherService:
             if task_id in self.config:
                 task_config = self.config[task_id]
                 
-                # FR-0005: 사용자가 직접 생성해야 하는 폴더의 존재 여부 확인
                 for folder_key in ['in', 'done', 'stop']:
                     folder_path = task_config[folder_key]
                     if not os.path.isdir(folder_path):
-                        self.logger.warning(f"설정된 폴더를 찾을 수 없습니다: '{folder_path}'. 이 작업은 올바르게 동작하지 않을 수 있습니다.")
+                        self.logger.warning(f"설정된 폴더를 찾을 수 없습니다: '{folder_path}'.")
                 
                 self.logger.info(f"[{task_config['name']}] 시작 시 기존 파일 처리 중...")
                 try:

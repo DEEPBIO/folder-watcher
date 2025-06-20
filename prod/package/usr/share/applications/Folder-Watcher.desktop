@@ -1,7 +1,6 @@
 [Desktop Entry]
 Name=Folder Watcher
 Comment=Watch folders and execute tasks
-# CR-0003: 설치 위치의 실행 파일을 가리킴
 Exec=/opt/folder-watcher/folder-watcher-executable
 Icon=utilities-terminal
 Terminal=false

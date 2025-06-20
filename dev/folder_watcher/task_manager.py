@@ -1,4 +1,4 @@
-# 요구사항: PR-0001, FR-0003, FR-0006, FR-0008, FR-0009, FR-0010, FR-0011, FR-0012
+# 요구사항: PR-0001, FR-0006, FR-0008, FR-0009, FR-0010, FR-0011, FR-0012
 import logging
 import os
 import shutil
@@ -6,7 +6,6 @@ import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-# PR-0001: 동시 실행 가능한 작업 수는 max(2, 코어 수 - 2)
 MAX_WORKERS = max(2, (os.cpu_count() or 1) - 2)
 
 class TaskManager:
@@ -17,7 +16,6 @@ class TaskManager:
         logging.info(f"작업 관리자 초기화. 최대 동시 작업 수: {MAX_WORKERS}")
 
     def submit_task(self, task_id, file_path):
-        """작업 큐에 새로운 작업을 제출합니다."""
         task_config = self.config[task_id]
         self.executor.submit(self._execute_task, task_config, file_path)
         logging.info(f"작업 제출: [{task_config['name']}] 파일: {os.path.basename(file_path)}")
