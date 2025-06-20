@@ -11,21 +11,11 @@
 ### 개발 환경 설정
 1.  **저장소 클론**
     ```bash
-    git clone [https://github.com/DEEPBIO/folder-watcher.git](https://github.com/DEEPBIO/folder-watcher.git)
+    git clone https://github.com/DEEPBIO/folder-watcher.git
     cd folder-watcher/
     ```
 
-2.  **가상 환경(fw) 생성 및 활성화**
-    프로젝트의 루트 디렉토리 `folder-watcher/` 에서 가상 환경을 생성하는 것을 권장합니다.
-    ```bash
-    # 가상 환경 생성
-    python3 -m venv fw
-
-    # 가상 환경 활성화
-    source fw/bin/activate
-    ```
-
-3.  **개발 의존성 설치 (CR-0005)**
+2.  **개발 의존성 설치 (CR-0005)**
     `dev/` 디렉토리의 `requirements.txt` 파일을 사용하여 개발 및 빌드에 필요한 모듈을 설치합니다.
     ```bash
     pip install -r dev/requirements.txt
@@ -46,7 +36,7 @@
     프로젝트 루트 디렉토리에서 아래 명령어를 실행하여 의존성이 포함된 단일 실행 파일을 생성합니다.
     ```bash
     # dev 디렉토리 안의 소스를 빌드
-    pyinstaller --noconfirm --onefile --name folder-watcher-executable dev/folder_watcher/__main__.py
+    pyinstaller --noconfirm --optimize 2 --add-data "dev/templates:templates" --add-data "dev/static:static" --onefile --name folder-watcher-executable --paths . dev/folder_watcher/__main__.py
     ```
 
 2.  **빌드 결과물 복사**

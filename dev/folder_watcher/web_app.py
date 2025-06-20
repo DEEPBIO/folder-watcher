@@ -1,6 +1,7 @@
 # 요구사항: FR-0013 ~ FR-0019, SR-0001
 import logging
 import os
+import sys
 import signal
 import time
 import shutil
@@ -13,13 +14,21 @@ pids_dir = None
 logs_dir = None
 software_version = "1.0.0"
 
+def resource_path(relative_path):
+    """Get the absolute path to the resource, works for development and production."""
+    try:
+        base_path = sys._MEIPASS    # For PyInstaller
+    except Exception:
+        base_path = '..'
+    return os.path.join(base_path, relative_path)
+
 def create_app(config):
     global app_config, pids_dir, logs_dir
     app_config = config
     pids_dir = app_config.get('common', 'pids')
     logs_dir = app_config.get('common', 'logs')
 
-    app = Flask(__name__, template_folder='../templates', static_folder='../static')
+    app = Flask(__name__, template_folder=resource_path('templates'), static_folder=resource_path('static'))
     app.secret_key = os.urandom(24)
 
     @app.route('/login', methods=['GET', 'POST'])
