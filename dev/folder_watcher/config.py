@@ -12,8 +12,8 @@ def get_config_templates(dev_mode=False):
     """실행 모드에 따라 다른 설정 템플릿을 반환합니다."""
     if dev_mode:
         # 개발 모드: 저장소 내의 test/demo 폴더를 절대 경로로 사용
-        test_dir = PROJECT_ROOT / "dev" / "test"
-        demo_dir = PROJECT_ROOT / "dev" / "demo"
+        test_dir = PROJECT_ROOT / "test"
+        demo_dir = PROJECT_ROOT / "demo"
         return f"""
 [common]
 tasks = 1

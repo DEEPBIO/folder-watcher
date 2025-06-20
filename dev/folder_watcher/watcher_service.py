@@ -13,10 +13,26 @@ class TaskEventHandler(FileSystemEventHandler):
         self.task_manager = task_manager
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def on_closed(self, event):
-        if not event.is_directory:
-            self.logger.info(f"파일 감지됨: {event.src_path} (작업: {self.task_config['name']})")
-            self.task_manager.submit_task(self.task_id, event.src_path)
+    def _check_and_submit(self, file_path):
+        file_name = os.path.basename(file_path)
+        if not file_name.startswith('.'):
+            self.logger.info(f"파일 감지됨: {file_path} (작업: {self.task_config['name']})")
+            self.task_manager.submit_task(self.task_id, file_path)
+
+    def on_any_event(self, event):
+        if event.event_type == 'moved':
+            self.logger.info(f"이동 감지됨: {event.src_path} -> {event.dest_path}")
+        if event.is_directory:
+            return
+        match event.event_type:
+            case 'closed':      # completely copied
+                self._check_and_submit(event.src_path)
+            case 'created':     # hardlink created
+                if os.stat(event.src_path).st_nlink > 1:
+                    self._check_and_submit(event.src_path)
+            case _:             # ignore other events
+                pass
+
 
 class WatcherService:
     def __init__(self, config, task_manager):
@@ -40,6 +56,8 @@ class WatcherService:
                 self.logger.info(f"[{task_config['name']}] 시작 시 기존 파일 처리 중...")
                 try:
                     for filename in os.listdir(task_config['in']):
+                        if filename.startswith('.'):
+                            continue
                         file_path = os.path.join(task_config['in'], filename)
                         if os.path.isfile(file_path):
                             self.task_manager.submit_task(task_id, file_path)

@@ -7,5 +7,19 @@
     white-space: pre-wrap;
     word-wrap: break-word;
     font-family: monospace;
-    font-size: 0.85rem;
+    font-size: 0.8rem; 
+}
+
+.table-dashboard {
+    font-size: 0.9rem;
+}
+
+.table-dashboard tbody tr {
+    vertical-align: middle; 
+}
+
+.table-dashboard .btn-sm {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
 }

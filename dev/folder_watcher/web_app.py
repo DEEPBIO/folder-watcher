@@ -2,7 +2,9 @@
 import logging
 import os
 import signal
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import time
+import shutil
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from .auth import login_required, check_credentials
 from .config import get_config_path
 
@@ -42,47 +44,102 @@ def create_app(config):
     @app.route('/')
     @login_required
     def dashboard():
-        status_data = []
+        return render_template('dashboard.html', title="대시보드")
+        
+    @app.route('/api/status')
+    @login_required
+    def api_status():
+        all_files = []
         num_tasks = app_config.getint('common', 'tasks', fallback=0)
         
-        running_tasks_map = {}
         if os.path.isdir(pids_dir):
-            for pid_file in os.listdir(pids_dir):
-                if pid_file.endswith('.pid'):
+            for pid_filename in os.listdir(pids_dir):
+                if pid_filename.endswith('.pid'):
                     try:
-                        with open(os.path.join(pids_dir, pid_file)) as f:
+                        parts = pid_filename.rsplit('.pid', 1)[0].split('-', 1)
+                        if len(parts) != 2: continue
+                        
+                        task_id, original_filename = parts
+                        task_name = app_config.get(task_id, 'name', fallback=f"Task {task_id}")
+                        
+                        pid_file_path = os.path.join(pids_dir, pid_filename)
+                        with open(pid_file_path) as f:
                             pid = int(f.read().strip())
-                        running_tasks_map[pid_file.replace('.pid', '')] = pid
-                    except (IOError, ValueError):
+                        
+                        mtime = os.path.getmtime(pid_file_path)
+                        elapsed_seconds = time.time() - mtime
+                        
+                        all_files.append({
+                            "task_id": task_id,
+                            "task_name": task_name,
+                            "file_name": original_filename,
+                            "status": "실행중",
+                            "pid": pid,
+                            "elapsed_seconds": elapsed_seconds
+                        })
+                    except (IOError, ValueError, IndexError):
                         continue
         
         for i in range(num_tasks):
             task_id = str(i)
             if task_id in app_config:
                 task = app_config[task_id]
-                
-                def get_files_from_dir(path):
-                    if not os.path.isdir(path): return []
-                    return os.listdir(path)
+                task_name = task.get('name', f"Task {task_id}")
 
-                task_status = {
-                    'name': task['name'],
-                    'running': [{'file': f, 'pid': p} for f, p in running_tasks_map.items()],
-                    'done': get_files_from_dir(task['done'])[-20:],
-                    'stop': get_files_from_dir(task['stop'])[-20:],
-                }
-                status_data.append(task_status)
-        return render_template('dashboard.html', title="대시보드", status_data=status_data)
+                def get_files(folder, status):
+                    if not os.path.isdir(folder): return
+                    for filename in os.listdir(folder)[-20:]:
+                        if filename.startswith('.'):
+                            continue
+                        all_files.append({
+                            "task_id": task_id,
+                            "task_name": task_name,
+                            "file_name": filename,
+                            "status": status,
+                            "pid": None,
+                            "elapsed_seconds": None
+                        })
+                
+                get_files(task['done'], "완료")
+                get_files(task['stop'], "중단")
+                
+        return jsonify(all_files)
+
+    @app.route('/api/retry', methods=['POST'])
+    @login_required
+    def retry_task():
+        # 중단된 작업 재시도 기능
+        data = request.get_json()
+        task_id = data.get('task_id')
+        file_name = data.get('file_name')
+
+        if not task_id or not file_name:
+            return jsonify({"success": False, "error": "Missing task_id or file_name"}), 400
+
+        try:
+            task_config = app_config[task_id]
+            stop_path = os.path.join(task_config['stop'], file_name)
+            in_path = os.path.join(task_config['in'], file_name)
+
+            if os.path.exists(stop_path):
+                shutil.copy(stop_path, in_path)
+                os.unlink(stop_path)
+                logging.info(f"재시도 요청: '{file_name}'을(를) '{task_config['in']}' 폴더로 이동했습니다.")
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "File not found in stop folder"}), 404
+        except Exception as e:
+            logging.error(f"재시도 중 오류 발생: {e}")
+            return jsonify({"success": False, "error": str(e)}), 500
 
     @app.route('/stop_task/<int:pid>', methods=['POST'])
     @login_required
     def stop_task(pid):
         try:
             os.kill(pid, signal.SIGTERM)
-            flash(f"프로세스(PID: {pid})에 중단 신호를 보냈습니다.", 'success')
         except Exception as e:
-            flash(f"프로세스 중단 중 오류 발생: {e}", 'danger')
-        return redirect(url_for('dashboard'))
+            logging.error(f"프로세스 중단 중 오류 발생: {e}")
+        return jsonify({"success": True})
 
     @app.route('/logs')
     @login_required
